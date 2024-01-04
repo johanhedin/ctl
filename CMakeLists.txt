@@ -70,7 +70,6 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
 else()
 endif()
 
-
 # Set properties on our target
 set_target_properties(ctl PROPERTIES PUBLIC_HEADER "${PROJECT_SOURCE_DIR}/include/ctl.h")
 set_target_properties(ctl PROPERTIES VERSION ${CTL_VERSION_STRING})
