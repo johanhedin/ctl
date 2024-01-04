@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 2.8.12...3.10)
 
 #
 # Run with make VERBOSE=1 to see how things are build
@@ -70,7 +70,9 @@ target_include_directories(ctl PRIVATE ${JANSSON_INCLUDE_DIRS})
 target_link_libraries(ctl PRIVATE ${JANSSON_LIBRARIES})
 
 # Install options
-install(TARGETS ctl LIBRARY DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}" PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}/ctl")
+install(TARGETS ctl LIBRARY DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
+                    ARCHIVE DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
+                    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}/ctl")
 if(CTL_SHARED_LIBS)
     configure_file("${PROJECT_SOURCE_DIR}/pkgcfg/libctl.pc.in"
                    "${CMAKE_CURRENT_BINARY_DIR}/libctl.pc" @ONLY)
