@@ -14,7 +14,9 @@ int ctl_parse_config(const char* json, struct ctl_cfg* cfg) {
     json_t       *json_dir;
     const char   *dir;
 
-    *cfg = (struct ctl_cfg){0};
+    cfg->dir[0] = 0;
+    cfg->bit_mask = 0;
+    cfg->use_internal = 0;
 
     json_flags = 0;
     json_root = json_loads(json, json_flags, &json_error);
