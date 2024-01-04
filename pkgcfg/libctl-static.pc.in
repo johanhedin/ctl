@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=@CMAKE_INSTALL_PREFIX@
+libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: lib@PROJECT_NAME@-static
+Description: @PROJECT_DESCRIPTION@. Static version
+Version: @PROJECT_VERSION@
+
+Requires: jansson
+Libs: -L${libdir} -l:lib@PROJECT_NAME@.a
+Cflags: -I${includedir}/@PROJECT_NAME@
