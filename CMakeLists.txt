@@ -30,15 +30,20 @@ else()
 endif ()
 set(CMAKE_BUILD_TYPE "${CTL_TMP_BUILD_TYPE}" CACHE STRING "Choose the type of build. Options are: Debug, Release or RelWithDebInfo" FORCE)
 
-# Default is to build libctl as a static library. Change to build a shared lilbrary with -DCTL_SHARED_LIBS=ON
-if(NOT DEFINED CTL_SHARED_LIBS)
-    message(STATUS "Defaulting to building libctl as a static library. Change to shared with -DCTL_SHARED_LIBS=ON")
-    set(CTL_SHARED_LIBS_TMP OFF)
+# Default to link libctl in-tree. Change to "normal" static or shared library
+# with -DCTL_LINK_TYPE={Static,Shared}
+if(NOT DEFINED CTL_LINK_TYPE)
+    message(STATUS "Defaulting to linking libctl Intree. Change to 'Static' or 'Shared' with -DCTL_LINK_TYPE=<choise>")
+    set(CTL_LINK_TYPE_TMP "Intree")
 else()
-    set(CTL_SHARED_LIBS_TMP ${CTL_SHARED_LIBS})
+    set(CTL_LINK_TYPE_TMP ${CTL_LINK_TYPE})
 endif()
-set(CTL_SHARED_LIBS ${CTL_SHARED_LIBS_TMP} CACHE BOOL "Build libctl as a shared library" FORCE)
-set(BUILD_SHARED_LIBS ${CTL_SHARED_LIBS})
+set(CTL_LINK_TYPE ${CTL_LINK_TYPE_TMP} CACHE STRING "How to link libctl. Options are: Intree, Static or Shared" FORCE)
+if(CTL_LINK_TYPE STREQUAL "Shared")
+    set(BUILD_SHARED_LIBS ON)
+else()
+    set(BUILD_SHARED_LIBS OFF)
+endif()
 
 # We need the PkgConfig cmake module to be able to find libraries we depend on
 find_package(PkgConfig REQUIRED)
@@ -72,42 +77,46 @@ endif()
 
 # Set properties on our target
 set_target_properties(ctl PROPERTIES PUBLIC_HEADER "${PROJECT_SOURCE_DIR}/include/ctl.h")
-set_target_properties(ctl PROPERTIES VERSION ${CTL_VERSION_STRING})
-set_target_properties(ctl PROPERTIES SOVERSION ${CTL_VERSION_MAJOR})
+set_target_properties(ctl PROPERTIES VERSION        ${CTL_VERSION_STRING})
+set_target_properties(ctl PROPERTIES SOVERSION      ${CTL_VERSION_MAJOR})
 
 # Add additional libraries that we depend on
 pkg_check_modules(JANSSON REQUIRED jansson>=2)
 target_include_directories(ctl PRIVATE ${JANSSON_INCLUDE_DIRS})
 target_link_libraries(ctl PRIVATE ${JANSSON_LIBRARIES})
 
-# Install options
-install(TARGETS ctl LIBRARY DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
-                    ARCHIVE DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
-                    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}/ctl")
-if(CTL_SHARED_LIBS)
-    configure_file("${PROJECT_SOURCE_DIR}/pkgcfg/libctl.pc.in"
-                   "${CMAKE_CURRENT_BINARY_DIR}/libctl.pc" @ONLY)
-    install(FILES       "${CMAKE_CURRENT_BINARY_DIR}/libctl.pc"
-            DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig")
-else()
-    configure_file("${PROJECT_SOURCE_DIR}/pkgcfg/libctl-static.pc.in"
-                   "${CMAKE_CURRENT_BINARY_DIR}/libctl-static.pc" @ONLY)
-    install(FILES       "${CMAKE_CURRENT_BINARY_DIR}/libctl-static.pc"
-            DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig")
-endif()
+if(NOT CTL_LINK_TYPE STREQUAL "Intree")
+    # Install options
+    install(TARGETS ctl LIBRARY       DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
+                        ARCHIVE       DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
+                        PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}/ctl")
+    if(CTL_LINK_TYPE STREQUAL "Shared")
+        configure_file("${PROJECT_SOURCE_DIR}/pkgcfg/libctl.pc.in"
+                       "${CMAKE_CURRENT_BINARY_DIR}/libctl.pc" @ONLY)
+        install(FILES       "${CMAKE_CURRENT_BINARY_DIR}/libctl.pc"
+                DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig")
+    else()
+        configure_file("${PROJECT_SOURCE_DIR}/pkgcfg/libctl-static.pc.in"
+                       "${CMAKE_CURRENT_BINARY_DIR}/libctl-static.pc" @ONLY)
+        install(FILES       "${CMAKE_CURRENT_BINARY_DIR}/libctl-static.pc"
+                DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig")
+    endif()
 
-# Create a uninstall target if it does not already exist
-if(NOT TARGET uninstall)
-    configure_file("${PROJECT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
-                   "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" @ONLY)
-    add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+    # Create a uninstall target if it does not already exist
+    if(NOT TARGET uninstall)
+        configure_file("${PROJECT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
+                    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" @ONLY)
+        add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+    endif()
 endif()
 
 # Dump our config for review
 message(STATUS "The following build options will be used for libctl:")
+message(STATUS "    CTL_LINK_TYPE=${CTL_LINK_TYPE}")
 message(STATUS "    CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 message(STATUS "    CMAKE_C_COMPILER_ID=${CMAKE_C_COMPILER_ID}")
 message(STATUS "    CMAKE_C_COMPILER_VERSION=${CMAKE_C_COMPILER_VERSION}")
+if(NOT CTL_LINK_TYPE STREQUAL "Intree")
 message(STATUS "    BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}")
 message(STATUS "    CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}")
 message(STATUS "    CMAKE_INSTALL_FULL_INCLUDEDIR=${CMAKE_INSTALL_FULL_INCLUDEDIR}")
@@ -117,3 +126,4 @@ message(STATUS "    CMAKE_INSTALL_FULL_SYSCONFDIR=${CMAKE_INSTALL_FULL_SYSCONFDI
 message(STATUS "    CMAKE_INSTALL_FULL_DATAROOTDIR=${CMAKE_INSTALL_FULL_DATAROOTDIR}")
 message(STATUS "    CMAKE_INSTALL_FULL_LOCALSTATEDIR=${CMAKE_INSTALL_FULL_LOCALSTATEDIR}")
 message(STATUS "    CMAKE_INSTALL_FULL_DOCDIR=${CMAKE_INSTALL_FULL_DOCDIR}")
+endif()
