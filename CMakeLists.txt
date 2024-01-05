@@ -90,6 +90,11 @@ if(NOT CTL_LINK_TYPE STREQUAL "Intree")
     install(TARGETS ctl LIBRARY       DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
                         ARCHIVE       DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
                         PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}/ctl")
+    # Touch install manifest so that it does not get owned by root on
+    # sudo make install
+    file(TOUCH "${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt")
+
+    # Different pkg-config files depending on static or shared
     if(CTL_LINK_TYPE STREQUAL "Shared")
         configure_file("${PROJECT_SOURCE_DIR}/pkgcfg/libctl.pc.in"
                        "${CMAKE_CURRENT_BINARY_DIR}/libctl.pc" @ONLY)
