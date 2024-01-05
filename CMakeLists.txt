@@ -20,8 +20,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
 
-# Default build type is Debug. Change with cmake -DCMAKE_BUILD_TYPE=Release
-# or cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo.
+# Build type defaults to Debug. Change to Release or RelWithDebInfo with cmake -DCMAKE_BUILD_TYPE=<choise>
 if(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
     message(STATUS "Build type defaulting to Debug. Change to Relese or RelWithDebInfo with -DCMAKE_BUILD_TYPE=<choise>")
     set(CTL_TMP_BUILD_TYPE "Debug")
@@ -30,10 +29,10 @@ else()
 endif ()
 set(CMAKE_BUILD_TYPE "${CTL_TMP_BUILD_TYPE}" CACHE STRING "Choose the type of build. Options are: Debug, Release or RelWithDebInfo" FORCE)
 
-# Default to link libctl in-tree. Change to "normal" static or shared library
-# with -DCTL_LINK_TYPE={Static,Shared}
+# Default to link libctl as static in-tree. Change to installable static or shared
+# library with -DCTL_LINK_TYPE={Static,Shared}
 if(NOT DEFINED CTL_LINK_TYPE)
-    message(STATUS "Defaulting to linking libctl Intree. Change to 'Static' or 'Shared' with -DCTL_LINK_TYPE=<choise>")
+    message(STATUS "Linking of libctl defaulting to static Intree. Change to 'Static' or 'Shared' with -DCTL_LINK_TYPE=<choise>")
     set(CTL_LINK_TYPE_TMP "Intree")
 else()
     set(CTL_LINK_TYPE_TMP ${CTL_LINK_TYPE})
@@ -89,28 +88,28 @@ if(NOT CTL_LINK_TYPE STREQUAL "Intree")
     # Install options
     install(TARGETS ctl LIBRARY       DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
                         ARCHIVE       DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
-                        PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}/ctl")
-    # Touch install manifest so that it does not get owned by root on
-    # sudo make install
+                        PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}/${PROJECT_NAME}")
+
+    # Touch install manifest so that it does not get owned by root on sudo make install
     file(TOUCH "${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt")
 
     # Different pkg-config files depending on static or shared
     if(CTL_LINK_TYPE STREQUAL "Shared")
-        configure_file("${PROJECT_SOURCE_DIR}/pkgcfg/libctl.pc.in"
-                       "${CMAKE_CURRENT_BINARY_DIR}/libctl.pc" @ONLY)
-        install(FILES       "${CMAKE_CURRENT_BINARY_DIR}/libctl.pc"
+        configure_file("${PROJECT_SOURCE_DIR}/pkgcfg/lib${PROJECT_NAME}.pc.in"
+                       "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc" @ONLY)
+        install(FILES       "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc"
                 DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig")
     else()
-        configure_file("${PROJECT_SOURCE_DIR}/pkgcfg/libctl-static.pc.in"
-                       "${CMAKE_CURRENT_BINARY_DIR}/libctl-static.pc" @ONLY)
-        install(FILES       "${CMAKE_CURRENT_BINARY_DIR}/libctl-static.pc"
+        configure_file("${PROJECT_SOURCE_DIR}/pkgcfg/lib${PROJECT_NAME}-static.pc.in"
+                       "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-static.pc" @ONLY)
+        install(FILES       "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-static.pc"
                 DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig")
     endif()
 
     # Create a uninstall target if it does not already exist
     if(NOT TARGET uninstall)
         configure_file("${PROJECT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
-                    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" @ONLY)
+                       "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" @ONLY)
         add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
     endif()
 endif()
