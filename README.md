@@ -3,14 +3,15 @@ ctl
 
 `ctl` is a simple template for how to build a C library with cmake. It support
 building both static and shared versions as well as creation of pkg-config
-configurations.
+configurations. The template is also submodule friendly if included in another
+(git) repo.
 
 Download and build
 ----
 Clone `ctl` from GitHub:
 
     $ git clone https://github.com/johanhedin/ctl.git
-    $ cd cte
+    $ cd ctl
 
 and then build with cmake:
 
