@@ -14,13 +14,14 @@ on:
 
 jobs:
   build:
+    name: Build and install
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
       - name: Install build requirements
         run: sudo apt-get update ; sudo apt-get install -y cmake gcc-12 pkg-config libjansson-dev
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Configure Intee build
         run: rm -rf build ; cmake -B build
@@ -32,12 +33,10 @@ jobs:
         run: rm -rf build ; cmake -B build -DCTL_LINK_TYPE=Static
 
       - name: Build and install Static
-        run: |
-          cd build && make && sudo make install && sudo make uninstall
+        run: cd build && make && sudo make install && sudo make uninstall
 
       - name: Configure Shared build
-        run: rm -rf build ; cmake -B build -DCTL_LINK_TYPE=Shared -DCMAKE_INSTALL_PREFIX=/usr
+        run: rm -rf build ; cmake -B build -DCTL_LINK_TYPE=Shared -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release
 
       - name: Build and install Shared
-        run: |
-          cd build && make && sudo make install && sudo make uninstall
+        run: cd build && make && sudo make install && sudo make uninstall
