@@ -27,7 +27,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Configure Intee build
+      - name: Configure Intree build
         run: rm -rf build ; cmake -B build
 
       - name: Build Intree
