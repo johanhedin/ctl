@@ -15,7 +15,11 @@ on:
 jobs:
   build:
     name: Build and install
-    runs-on: ubuntu-latest
+    #runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner: [ ubuntu-20.04, ubuntu-22.04 ]
     steps:
       - name: Install build requirements
         run: sudo apt-get update ; sudo apt-get install -y cmake gcc-12 pkg-config libjansson-dev
