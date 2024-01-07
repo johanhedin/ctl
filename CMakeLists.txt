@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.12...3.10)
 
 #
 # Run with make VERBOSE=1 to see how things are build
+# configure_file as a build step: https://cmake.org/pipermail/cmake/2012-May/050221.html
 #
 project(ctl C)
 
@@ -90,8 +91,8 @@ if(NOT CTL_LINK_TYPE STREQUAL "Intree")
                         ARCHIVE       DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
                         PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}/${PROJECT_NAME}")
 
-    # Touch install manifest so that it does not get owned by root on sudo make install
-    file(TOUCH "${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt")
+    # Create empty install_manifest.txt so that it does not get owned by root on sudo make install
+    file(COPY "${PROJECT_SOURCE_DIR}/cmake/install_manifest.txt" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
     # Different pkg-config files depending on static or shared
     if(CTL_LINK_TYPE STREQUAL "Shared")
