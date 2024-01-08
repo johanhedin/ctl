@@ -92,20 +92,24 @@ if(NOT CTL_LINK_TYPE STREQUAL "Intree")
                         PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}/${PROJECT_NAME}")
 
     # Create empty install_manifest.txt so that it does not get owned by root on sudo make install
-    file(COPY "${PROJECT_SOURCE_DIR}/cmake/install_manifest.txt" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+    execute_process(COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/install_manifest.txt")
 
-    # Different pkg-config files depending on static or shared
-    if(CTL_LINK_TYPE STREQUAL "Shared")
-        configure_file("${PROJECT_SOURCE_DIR}/pkgcfg/lib${PROJECT_NAME}.pc.in"
-                       "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc" @ONLY)
-        install(FILES       "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc"
-                DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig")
+    # Different pkg-config files for Static or Shared
+    if(CTL_LINK_TYPE STREQUAL "Static")
+        set(CTL_STATIC_PREFIX "-static")
     else()
-        configure_file("${PROJECT_SOURCE_DIR}/pkgcfg/lib${PROJECT_NAME}-static.pc.in"
-                       "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-static.pc" @ONLY)
-        install(FILES       "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-static.pc"
-                DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig")
+        set(CTL_STATIC_PREFIX "")
     endif()
+
+    configure_file("${PROJECT_SOURCE_DIR}/cmake/cmake_pkgconfig.cmake.in"
+                   "${CMAKE_CURRENT_BINARY_DIR}/cmake_pkgconfig.cmake" @ONLY)
+    add_custom_command(OUTPUT "lib${PROJECT_NAME}${CTL_STATIC_PREFIX}.pc"
+                       COMMAND ${CMAKE_COMMAND} -DCTL_STATIC_PREFIX=${CTL_STATIC_PREFIX} -P cmake_pkgconfig.cmake
+                       DEPENDS "${PROJECT_SOURCE_DIR}/pkgcfg/lib${PROJECT_NAME}${CTL_STATIC_PREFIX}.pc.in")
+    add_custom_target(pkgconfig DEPENDS "lib${PROJECT_NAME}${CTL_STATIC_PREFIX}.pc")
+    add_dependencies(ctl pkgconfig)
+    install(FILES       "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}${CTL_STATIC_PREFIX}.pc"
+            DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig")
 
     # Create a uninstall target if it does not already exist
     if(NOT TARGET uninstall)
@@ -122,6 +126,7 @@ message(STATUS "    CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 message(STATUS "    CMAKE_C_COMPILER_ID=${CMAKE_C_COMPILER_ID}")
 message(STATUS "    CMAKE_C_COMPILER_VERSION=${CMAKE_C_COMPILER_VERSION}")
 if(NOT CTL_LINK_TYPE STREQUAL "Intree")
+message(STATUS "    PKGCONFIG=lib${PROJECT_NAME}${CTL_STATIC_PREFIX}.pc")
 message(STATUS "    BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}")
 message(STATUS "    CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}")
 message(STATUS "    CMAKE_INSTALL_FULL_INCLUDEDIR=${CMAKE_INSTALL_FULL_INCLUDEDIR}")
