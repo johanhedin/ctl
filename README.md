@@ -4,7 +4,7 @@ ctl
 
 `ctl` is a small example how to build a C library with cmake. It support
 building both static and shared versions as well as creation of pkg-config
-configurations. The template is also submodule friendly if included in another
+configurations. The example is submodule friendly if included in another
 (git) repo. The cmake configuration works with cmake from 2.8.12 all the way up
 to 3.28.
 
