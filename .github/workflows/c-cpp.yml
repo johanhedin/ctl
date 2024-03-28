@@ -47,5 +47,5 @@ jobs:
     name: Deply to rocky9test1
     runs-on: rocky9test1
     steps:
-      -name: First step
-       run: touch file.txt
+      - name: First step
+        run: touch file.txt
